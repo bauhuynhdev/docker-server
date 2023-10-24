@@ -1,0 +1,99 @@
+version: '3'
+services:
+  jinjer_mysql:
+    image: mysql:5.7
+    volumes:
+      - ./jinjer_mysql:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=jinjer_core
+      - MYSQL_PASSWORD=none
+      - MYSQL_ROOT_PASSWORD=none
+    command: mysqld --sql_mode=""
+    ports:
+      - "8888:3306"
+  jinjer_core:
+    image: docker/php8.2:latest
+    depends_on:
+      - jinjer_mysql
+    volumes:
+      - /home/bauhq/Documents/keihi_jinjer_core:/app
+    environment:
+      - WEBROOT=/app
+#    expose:
+#      - "8080"
+    ports:
+      - "1100:8080"
+  jinjer_sso:
+    image: jinjer-sso
+    depends_on:
+      - jinjer_core
+      - jinjer_sso_redis
+    build:
+      context: /home/bauhq/Documents/jinjer_hr_auth
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: local
+    command: "app"
+    volumes:
+      - /home/bauhq/Documents/jinjer_hr_auth:/usr/src/app
+      - ./shared:/shared #for php-fpm.sock
+    expose:
+      - "80"
+  jinjer_sso_webserver:
+    image: jinjer-sso
+    depends_on:
+      - jinjer_core
+      - jinjer_sso_redis
+    build:
+      context: /home/bauhq/Documents/jinjer_hr_auth
+      dockerfile: Dockerfile
+      args:
+        APP_ENV: local
+    command: "webserver"
+    volumes:
+      - ./shared:/shared #for php-fpm.sock
+    expose:
+      - "80"
+    ports:
+      - "1000:80"
+  jinjer_sso_redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+  jinjer_jinji:
+    image: docker/php8.2:latest
+    depends_on:
+      - jinjer_core
+    volumes:
+      - /home/bauhq/Documents/keihi_jinjer_jinji:/app
+    environment:
+      - WEBROOT=/app
+    expose:
+      - "8080"
+    ports:
+      - "1200:8080"
+  jinjer_expenses:
+    image: docker/php8.2:latest
+    depends_on:
+      - jinjer_core
+    volumes:
+      - /home/bauhq/Documents/expense_employee:/app
+    environment:
+      - WEBROOT=/app
+    expose:
+      - "8080"
+    ports:
+      - "1300:8080"
+  nginx:
+    image: zeroormax/linux-nginx-php7.4
+    depends_on:
+      - jinjer_core
+      - jinjer_jinji
+      - jinjer_expenses
+    volumes:
+      - ./certificate.crt:/var/certificate.crt
+      - ./private.key:/var/private.key
+      - ./default.conf:/etc/nginx/conf.d/vhost.conf
+    ports:
+      - "80:80"
+      - "443:443"
