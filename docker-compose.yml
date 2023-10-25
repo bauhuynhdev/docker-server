@@ -72,6 +72,26 @@ services:
       - "8080"
     ports:
       - "1200:8080"
+  jinjer_jinji_redis:
+    image: redis:6
+    ports:
+      - "6380:6379"
+  jinjer_jinji_hr:
+    image: hoanglong01/nginx-php:052021
+    depends_on:
+      - jinjer_core
+    volumes:
+      - /home/bauhq/Documents/keihi_jinjer_jinji_hr:/app
+    environment:
+      - WEBROOT=/app
+    expose:
+      - "8080"
+    ports:
+      - "1400:8080"
+  jinjer_jinji_hr_redis:
+    image: redis:6
+    ports:
+      - "6381:6379"
   jinjer_expenses:
     image: docker/php8.2:latest
     depends_on:
