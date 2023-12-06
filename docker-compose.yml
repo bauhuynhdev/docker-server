@@ -11,95 +11,133 @@ services:
     command: mysqld --sql_mode=""
     ports:
       - "8888:3306"
-  jinjer_core:
+  keihi_jinjer_core:
     image: docker/php8.2:latest
     depends_on:
       - jinjer_mysql
+      - keihi_jinjer_core_redis
     volumes:
-      - /home/bauhq/Documents/keihi_jinjer_core:/app
+      - ./keihi_jinjer_core:/app
     environment:
       - WEBROOT=/app
 #    expose:
 #      - "8080"
     ports:
       - "1100:8080"
-  jinjer_sso:
-    image: jinjer-sso
-    depends_on:
-      - jinjer_core
-      - jinjer_sso_redis
-    build:
-      context: /home/bauhq/Documents/jinjer_hr_auth
-      dockerfile: Dockerfile
-      args:
-        APP_ENV: local
-    command: "app"
-    volumes:
-      - /home/bauhq/Documents/jinjer_hr_auth:/usr/src/app
-      - ./shared:/shared #for php-fpm.sock
-    expose:
-      - "80"
-  jinjer_sso_webserver:
-    image: jinjer-sso
-    depends_on:
-      - jinjer_core
-      - jinjer_sso_redis
-    build:
-      context: /home/bauhq/Documents/jinjer_hr_auth
-      dockerfile: Dockerfile
-      args:
-        APP_ENV: local
-    command: "webserver"
-    volumes:
-      - ./shared:/shared #for php-fpm.sock
-    expose:
-      - "80"
-    ports:
-      - "1000:80"
-  jinjer_sso_redis:
+  keihi_jinjer_core_redis:
     image: redis:6
     ports:
       - "6379:6379"
-  jinjer_jinji:
+#  jinjer_core72:
+#    image: hoanglong01/nginx-php:052021
+#    depends_on:
+#      - jinjer_mysql
+#      - jinjer_core_redis72
+#    volumes:
+#      - /Users/tomo/Documents/keihi_jinjer_core72:/app
+#    environment:
+#      - WEBROOT=/app
+#    expose:
+#      - "8080"
+#    ports:
+#      - "1500:8080"
+#  jinjer_core_redis72:
+#    image: redis:6
+#    ports:
+#      - "6382:6379"
+#  jinjer_sso:
+#    image: jinjer-sso
+#    depends_on:
+#      - jinjer_core
+#      - jinjer_sso_redis
+#    build:
+#      context: /home/bauhq/Documents/jinjer_hr_auth
+#      dockerfile: Dockerfile
+#      args:
+#        APP_ENV: local
+#    command: "app"
+#    volumes:
+#      - /home/bauhq/Documents/jinjer_hr_auth:/usr/src/app
+#      - ./shared:/shared #for php-fpm.sock
+#    expose:
+#      - "80"
+#  jinjer_sso_webserver:
+#    image: jinjer-sso
+#    depends_on:
+#      - jinjer_core
+#      - jinjer_sso_redis
+#    build:
+#      context: /home/bauhq/Documents/jinjer_hr_auth
+#      dockerfile: Dockerfile
+#      args:
+#        APP_ENV: local
+#    command: "webserver"
+#    volumes:
+#      - ./shared:/shared #for php-fpm.sock
+#    expose:
+#      - "80"
+#    ports:
+#      - "1000:80"
+#  jinjer_sso_redis:
+#    image: redis:6
+#    ports:
+#      - "6379:6379"
+  keihi_jinjer_jinji:
     image: docker/php8.2:latest
     depends_on:
-      - jinjer_core
-      - jinjer_jinji_redis
+      - keihi_jinjer_core
+#      - keihi_jinjer_jinji_redis
     volumes:
-      - /home/bauhq/Documents/keihi_jinjer_jinji:/app
+      - ./jinjer_jinji_sessions:/jinjer_jinji_sessions
+      - ./keihi_jinjer_jinji:/app
     environment:
       - WEBROOT=/app
     expose:
       - "8080"
     ports:
       - "1200:8080"
-  jinjer_jinji_redis:
+  keihi_jinjer_jinji_redis:
     image: redis:6
     ports:
       - "6380:6379"
-  jinjer_jinji_hr:
+#  jinjer_jinji_redis_reader:
+#    image: redis:6
+#    ports:
+#      - "6381:6379"
+#  jinjer_jinji72:
+#    image: hoanglong01/nginx-php:052021
+#    depends_on:
+#      - jinjer_core
+#      - jinjer_jinji_redis
+#    volumes:
+#      - /Users/tomo/Documents/docker-server/jinjer_jinji_sessions:/jinjer_jinji_sessions
+#      - /Users/tomo/Documents/keihi_jinjer_jinji72:/app
+#    environment:
+#      - WEBROOT=/app
+#    expose:
+#      - "8080"
+#    ports:
+#      - "1400:8080"
+  jinjer_hr_jinji:
     image: hoanglong01/nginx-php:052021
     depends_on:
       - jinjer_core
-      - jinjer_jinji_redis
+#      - keihi_jinjer_jinji_redis
     volumes:
-      - /home/bauhq/Documents/keihi_jinjer_jinji_hr:/app
+      - ./jinjer_jinji_sessions:/jinjer_jinji_sessions
+      - ./jinjer_hr_jinji:/app
     environment:
       - WEBROOT=/app
     expose:
       - "8080"
     ports:
-      - "1400:8080"
-#  jinjer_jinji_hr_redis:
-#    image: redis:6
-#    ports:
-#      - "6381:6379"
-  jinjer_expenses:
+      - "1600:8080"
+  keihi_jinjer_expense:
     image: docker/php8.2:latest
     depends_on:
       - jinjer_core
     volumes:
-      - /home/bauhq/Documents/expense_employee:/app
+      - ./keihi_jinjer_expense:/app
     environment:
       - WEBROOT=/app
     expose:
@@ -109,10 +147,10 @@ services:
   nginx:
     image: zeroormax/linux-nginx-php7.4
     depends_on:
-      - jinjer_core
-      - jinjer_jinji
-      - jinjer_jinji_hr
-      - jinjer_expenses
+      - keihi_jinjer_core
+      - keihi_jinjer_jinji
+      - keihi_jinjer_expense
+      - jinjer_hr_jinji
     volumes:
       - ./certificate.crt:/var/certificate.crt
       - ./private.key:/var/private.key
