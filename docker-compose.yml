@@ -121,7 +121,7 @@ services:
   jinjer_hr_jinji:
     image: hoanglong01/nginx-php:052021
     depends_on:
-      - jinjer_core
+      - keihi_jinjer_core
 #      - keihi_jinjer_jinji_redis
     volumes:
       - ./jinjer_jinji_sessions:/jinjer_jinji_sessions
@@ -135,7 +135,7 @@ services:
   keihi_jinjer_expense:
     image: docker/php8.2:latest
     depends_on:
-      - jinjer_core
+      - keihi_jinjer_core
     volumes:
       - ./keihi_jinjer_expense:/app
     environment:
@@ -152,9 +152,9 @@ services:
       - keihi_jinjer_expense
       - jinjer_hr_jinji
     volumes:
-      - ./certificate.crt:/var/certificate.crt
-      - ./private.key:/var/private.key
-      - ./default.conf:/etc/nginx/conf.d/vhost.conf
+      - ./docker/certificate.crt:/var/certificate.crt
+      - ./docker/private.key:/var/private.key
+      - ./docker/default.conf:/etc/nginx/conf.d/vhost.conf
     ports:
       - "80:80"
       - "443:443"
